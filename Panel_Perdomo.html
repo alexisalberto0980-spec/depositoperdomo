@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel · Depósito Perdomo</title>
+<style>
+:root{--bg:#050505;--surface:#111;--line:#262626;--muted:#a3a3a3;--red:#E03A2D;--ok:#3DDC84;--warn:#F2B705;--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:#fff;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:110px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--line);padding:22px 0;background:#000}
+h1{margin:0;font-size:1.6rem;letter-spacing:.02em;text-transform:uppercase}
+header p{margin:6px 0 0;color:var(--muted)}
+h2{font-size:1.15rem;margin:0 0 6px;text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--surface);border:1px solid var(--line);padding:22px;margin-top:20px}
+.muted{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border:1px solid var(--red);background:var(--red);color:#fff;font:700 .9rem inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:transform .2s var(--ease),background .2s,border-color .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;border-color:#555}
+.btn.ghost:hover{border-color:#fff}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#000}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;background:#000;color:#fff;border:1px solid var(--line);border-radius:0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(224,58,45,.25)}
+label{display:block;font-size:.9rem;font-weight:600}
+label>input,label>select,label>textarea{margin-top:4px;font-weight:400}
+.drop{border:2px dashed #3a3a3a;padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .25s,background .25s}
+.drop:hover,.drop.on{border-color:var(--red);background:#150a09}
+.drop b{display:block;font-size:1.15rem;margin-bottom:4px}
+.drop input{display:none}
+#app[hidden]{display:none}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:20px}
+.tab{min-height:46px;padding:0 20px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font:700 .9rem inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.panel[hidden]{display:none}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.bar>*{flex:1 1 180px}
+.bar .btn{flex:0 0 auto}
+.stat{display:inline-block;margin-right:18px;color:var(--muted)}
+.stat b{color:#fff;font-size:1.15rem}
+.msg{margin:12px 0 0;padding:12px 14px;border-left:4px solid var(--ok);background:#0c1a12}
+.msg.err{border-color:var(--red);background:#1a0c0b}
+.msg[hidden]{display:none}
+.rows{margin-top:14px}
+.row{display:grid;grid-template-columns:130px 1fr 140px 120px 84px 44px;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid #1c1c1c;animation:in .35s var(--ease) both}
+.row.head{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;position:sticky;top:0;background:var(--surface);z-index:2;animation:none}
+.row small{color:var(--muted)}
+.row .nm{min-width:0;overflow-wrap:anywhere}
+.row.chg{background:#1a1606;border-left:3px solid var(--warn)}
+.row.new{background:#0c1a12;border-left:3px solid var(--ok)}
+.row.del{opacity:.45;background:#1a0c0b;border-left:3px solid var(--red)}
+.row.del .nm{text-decoration:line-through}
+.row input{padding:8px 10px;text-align:right}
+.row .ag{display:flex;align-items:center;justify-content:center;gap:6px;font-size:.85rem;font-weight:400;color:var(--muted)}.row .ag input{width:20px;height:20px;margin:0;padding:0}.row .ag span{display:none}
+.x{width:40px;height:40px;background:transparent;border:1px solid var(--line);color:#fff;cursor:pointer;font-size:1rem}
+.x:hover{border-color:var(--red);color:var(--red)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+details{margin-top:14px;border:1px solid var(--line);padding:0 16px}
+summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.9rem}
+details[open]{padding-bottom:16px}
+.rv{display:grid;grid-template-columns:1fr 44px;gap:10px;align-items:start;padding:14px 0;border-bottom:1px solid #1c1c1c}
+.rv b{display:block}
+.rv .st{color:var(--warn);letter-spacing:.12em}
+.rv p{margin:4px 0 0}
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#000;border-top:1px solid var(--line);padding:12px 0;transform:translateY(100%);transition:transform .4s var(--ease)}
+.sticky.show{transform:none}
+.sticky .wrap{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+ol.pasos{margin:10px 0 0;padding-left:20px;color:var(--muted)}
+ol.pasos b{color:#fff}
+@media(max-width:760px){
+  .row{grid-template-columns:1fr 120px 44px;grid-template-areas:"cat cat cat" "nm nm nm" "pr pe x" "ag ag ag"}
+  .row .ag span{display:inline}
+  .row.head{display:none}
+  .row .ag{grid-area:ag}.row .c{grid-area:cat}.row .nm{grid-area:nm}.row .pr{grid-area:pr}.row .pe{grid-area:pe}.row .x{grid-area:x}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Panel de Depósito Perdomo</h1>
+  <p>Actualiza precios y reseñas sin tocar código. Todo pasa en tu computadora: nada se sube a internet.</p>
+</div></header>
+
+<main class="wrap">
+  <section class="card" id="paso1">
+    <h2>1. Abre tu página</h2>
+    <p class="muted" style="margin-top:0">Elige el archivo <b>Depósito_Perdomo.html</b> (el de tu página web) o arrástralo aquí.</p>
+    <label class="drop" id="drop" for="archivo"><b>Elegir el archivo de la página</b><span class="muted">o suéltalo aquí</span><input type="file" id="archivo" accept=".html,text/html"></label>
+    <p class="msg err" id="errCarga" hidden></p>
+  </section>
+
+  <div id="app" hidden>
+    <section class="card">
+      <span class="stat"><b id="sProd">0</b> productos</span>
+      <span class="stat"><b id="sPrec">0</b> precios (uno por presentación)</span>
+      <span class="stat"><b id="sRes">0</b> reseñas</span>
+      <span class="stat">Archivo: <b id="sNom"></b></span>
+      <ol class="pasos">
+        <li>Haz tus cambios abajo (precios, reseñas o fecha).</li>
+        <li>Toca <b>Descargar página actualizada</b>.</li>
+        <li>Sube ese archivo nuevo a tu hosting o compártelo, reemplazando el anterior.</li>
+      </ol>
+    </section>
+
+    <section class="card" id="borrador" hidden style="border-color:var(--warn)">
+      <h2>Tienes cambios sin descargar</h2>
+      <p class="muted" id="bdInfo" style="margin-top:0"></p>
+      <button class="btn ok" id="bdRec" type="button">Recuperar mis cambios</button>
+      <button class="btn ghost" id="bdDesc" type="button">Descartar</button>
+    </section>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-t="precios">Precios</button>
+      <button class="tab" role="tab" aria-selected="false" data-t="resenas">Reseñas</button>
+      <button class="tab" role="tab" aria-selected="false" data-t="fecha">Fecha de la lista</button>
+    </div>
+
+    <!-- PRECIOS -->
+    <section class="card panel" id="p-precios">
+      <h2>Precios</h2>
+      <p class="muted" style="margin-top:0">Cambia el precio directamente en la tabla. Si dejas un precio vacío, el sitio mostrará «Consultar».</p>
+      <div class="bar">
+        <label>Buscar<input id="q" type="search" placeholder="Ej. coca, salva vida, agua…"></label>
+        <label>Apartado<select id="fCat"></select></label>
+        <button class="btn ghost" id="bBaja" type="button">Bajar plantilla Excel (CSV)</button>
+        <label class="btn ghost" for="csv" style="margin:0">Subir CSV editado<input type="file" id="csv" accept=".csv,text/csv" hidden></label>
+      </div>
+      <label style="margin-top:12px;font-weight:400"><input type="checkbox" id="quitar" style="width:auto;margin:0 8px 0 0;vertical-align:-2px">Al subir el CSV, quitar los productos que no aparezcan en él</label>
+      <p class="msg" id="msgCsv" hidden></p>
+
+      <details id="ajuste">
+        <summary>％ Subir o bajar precios en porcentaje</summary>
+        <p class="muted" style="margin-top:0">Se aplica a todos los productos que coinciden con la búsqueda y el apartado elegidos arriba (aunque no se vean todavía en pantalla). Usa un número negativo para bajar.</p>
+        <div class="bar">
+          <label>Porcentaje (%)<input id="aPct" inputmode="decimal" placeholder="Ej. 5 o -3"></label>
+          <label style="font-weight:400"><input type="checkbox" id="aRed" checked style="width:auto;margin:0 8px 0 0;vertical-align:-2px">Redondear al lempira</label>
+          <button class="btn" id="bAj" type="button">Aplicar</button>
+        </div>
+        <p class="msg" id="msgAj" hidden></p>
+      </details>
+
+      <details id="nuevo">
+        <summary>＋ Agregar un producto nuevo</summary>
+        <div class="grid2">
+          <label>Apartado<select id="nCat"></select></label>
+          <label>Si es un apartado nuevo<input id="nCatNueva" placeholder="Ej. Hielo"></label>
+          <label>Nombre del producto<input id="nNom" placeholder="Ej. Coca-Cola 3 Litros"></label>
+          <label>Presentación<input id="nPres" placeholder="Ej. 6 unidades"></label>
+          <label>Precio (L)<input id="nPre" inputmode="decimal" placeholder="Ej. 295"></label>
+          <label>Marca (opcional)<input id="nMar" placeholder="Ej. Coca-Cola"></label>
+        </div>
+        <p style="margin:14px 0 0"><button class="btn" id="bNuevo" type="button">Agregar producto</button></p>
+        <p class="msg err" id="msgNuevo" hidden></p>
+      </details>
+
+      <div class="rows" id="rows" aria-live="polite"></div>
+      <p style="text-align:center"><button class="btn ghost" id="mas" type="button" hidden>Mostrar más</button></p>
+    </section>
+
+    <!-- RESEÑAS -->
+    <section class="card panel" id="p-resenas" hidden>
+      <h2>Reseñas</h2>
+      <p class="muted" style="margin-top:0">Cuando un cliente te mande su reseña por WhatsApp, cópiala aquí. Solo agrega opiniones reales y con permiso del cliente.</p>
+      <p class="msg err" id="noRes" hidden>Esta versión de la página no tiene el apartado de reseñas.</p>
+      <div id="resForm">
+        <div class="grid2">
+          <label>Nombre o negocio<input id="rNom" placeholder="Ej. Tienda Doña Rosa"></label>
+          <label>Calificación<select id="rEst"><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select></label>
+          <label>Fecha<input id="rFec" type="date"></label>
+        </div>
+        <label style="margin-top:12px">Comentario del cliente<textarea id="rTxt" rows="3" placeholder="Pega aquí lo que escribió el cliente"></textarea></label>
+        <p style="margin:14px 0 0"><button class="btn" id="bRes" type="button">Agregar reseña</button></p>
+        <p class="msg err" id="msgRes" hidden></p>
+      </div>
+      <div id="resLista" style="margin-top:18px"></div>
+    </section>
+
+    <!-- FECHA -->
+    <section class="card panel" id="p-fecha" hidden>
+      <h2>Fecha de la lista de precios</h2>
+      <p class="muted" style="margin-top:0">Es la fecha que se ve arriba del catálogo («Lista de precios del…»). Si cambias precios y no tocas esta fecha, se pone sola la de hoy al descargar.</p>
+      <p>Ahora dice: <b id="fechaAct">—</b></p>
+      <div class="bar">
+        <label>Nueva fecha<input type="date" id="fFec"></label>
+        <button class="btn ghost" id="bHoy" type="button">Usar la fecha de hoy</button>
+      </div>
+      <p class="msg err" id="noFecha" hidden>No encontré la línea de la fecha en esta página.</p>
+    </section>
+  </div>
+</main>
+
+<div class="sticky" id="sticky"><div class="wrap">
+  <span id="cambios"><b>0</b> cambios sin descargar</span>
+  <button class="btn ok" id="bDescarga" type="button">Descargar página actualizada</button>
+</div></div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var MES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var html = '', nombreArchivo = 'Depósito_Perdomo.html', rows = [], resenas = [], ordenCats = [], tieneRes = false;
+  var fechaOrig = null, fechaNueva = null, sucio = 0, visibles = 60, PAGINA = 60, resOrig = null;
+  var RX_PROD = /(var PRODUCTOS = \[\n)([\s\S]*?)(\n\s*\];)/;
+  var RX_RES = /\/\*RESENAS_INICIO\*\/[\s\S]*?\/\*RESENAS_FIN\*\//;
+  var RX_FEC = /Lista de precios del [^.<]*\./;
+
+  function norm(t){ return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); }
+  function key(r){ return norm(r.c) + '|' + norm(r.n) + '|' + norm(r.p); }
+  function el(t, c, x){ var e = document.createElement(t); if(c) e.className = c; if(x != null) e.textContent = x; return e; }
+  function show(id, txt, err){ var m = $(id); m.textContent = txt; m.classList.toggle('err', !!err); m.hidden = !txt; }
+  function fmt(n){ return n == null ? '' : String(n); }
+  function cambiado(r){ return r.v !== r.o || r.a !== r.oa; }
+
+  /* ---------- Cargar la página ---------- */
+  function cargar(file){
+    var rd = new FileReader();
+    rd.onload = function(){
+      try{
+        html = String(rd.result); nombreArchivo = file.name;
+        var m = RX_PROD.exec(html); if(!m) throw new Error('prod');
+        rows = []; ordenCats = [];
+        m[2].split('\n').forEach(function(l){
+          l = l.trim(); if(!l || l.indexOf('//') === 0) return;
+          var a = JSON.parse(l.replace(/,$/, ''));
+          rows.push({c: a[0], n: a[1], p: a[2], v: a[3], m: a[4] || '', o: a[3], est: 'ok', a: a[5] === 1 ? 1 : 0, oa: a[5] === 1 ? 1 : 0});
+          if(ordenCats.indexOf(a[0]) < 0) ordenCats.push(a[0]);
+        });
+        if(!rows.length) throw new Error('vacío');
+        tieneRes = RX_RES.test(html); resenas = [];
+        if(tieneRes){
+          var bl = RX_RES.exec(html)[0], j = /var RESENAS = (\[[\s\S]*\]);/.exec(bl);
+          if(j) resenas = JSON.parse(j[1]);
+        }
+        resOrig = JSON.stringify(resenas);
+        var f = RX_FEC.exec(html); fechaOrig = f ? f[0] : null; fechaNueva = null; sucio = 0;
+        $('errCarga').hidden = true; $('paso1').hidden = true; $('app').hidden = false;
+        $('sNom').textContent = nombreArchivo; $('fechaAct').textContent = fechaOrig ? fechaOrig.replace('Lista de precios del ', '').replace(/\.$/, '') : 'no encontrada';
+        $('noFecha').hidden = !!fechaOrig; $('fFec').disabled = !fechaOrig; $('bHoy').disabled = !fechaOrig;
+        $('noRes').hidden = tieneRes; $('resForm').hidden = !tieneRes;
+        llenarCats(); pintar(); pintarRes(); contar();
+        ofrecerBorrador();
+      }catch(e){
+        show('errCarga', 'No pude leer ese archivo. Asegúrate de elegir el Depósito_Perdomo.html de tu página.', true);
+      }
+    };
+    rd.readAsText(file, 'utf-8');
+  }
+  $('archivo').onchange = function(){ if(this.files[0]) cargar(this.files[0]); };
+  var dz = $('drop');
+  ['dragenter','dragover'].forEach(function(ev){ dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.add('on'); }); });
+  ['dragleave','drop'].forEach(function(ev){ dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.remove('on'); }); });
+  dz.addEventListener('drop', function(e){ if(e.dataTransfer.files[0]) cargar(e.dataTransfer.files[0]); });
+
+  /* ---------- Pestañas ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){
+    t.onclick = function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(x){ x.setAttribute('aria-selected', x === t ? 'true' : 'false'); });
+      ['precios','resenas','fecha'].forEach(function(k){ $('p-' + k).hidden = k !== t.dataset.t; });
+    };
+  });
+
+  /* ---------- Precios ---------- */
+  function llenarCats(){
+    [$('fCat'), $('nCat')].forEach(function(s, i){
+      var v = s.value; s.textContent = '';
+      if(i === 0){ var o = el('option', null, 'Todos los apartados'); o.value = ''; s.appendChild(o); }
+      ordenCats.forEach(function(c){ var o = el('option', null, c); o.value = c; s.appendChild(o); });
+      if(v) s.value = v;
+    });
+  }
+  function filtrados(){
+    var q = norm($('q').value), c = $('fCat').value;
+    return rows.filter(function(r){ return (!c || r.c === c) && (!q || norm(r.c + ' ' + r.n + ' ' + r.p + ' ' + r.m).indexOf(q) >= 0); });
+  }
+  function pintar(){
+    var box = $('rows'); box.textContent = ''; var lst = filtrados();
+    var h = el('div', 'row head'); ['Apartado','Producto','Presentación','Precio (L)','Agotado',''].forEach(function(x){ h.appendChild(el('span', null, x)); }); box.appendChild(h);
+    lst.slice(0, visibles).forEach(function(r){
+      var d = el('div', 'row' + (r.est === 'del' ? ' del' : r.est === 'new' ? ' new' : (cambiado(r) ? ' chg' : '')));
+      d.appendChild(el('small', 'c', r.c)); d.appendChild(el('span', 'nm', r.n));
+      d.appendChild(el('span', 'pe', r.p));
+      var inp = el('input', 'pr'); inp.setAttribute('inputmode', 'decimal'); inp.value = fmt(r.v); inp.placeholder = 'Consultar'; inp.setAttribute('aria-label', 'Precio de ' + r.n + ' ' + r.p);
+      inp.onchange = function(){
+        var n = parsePrecio(inp.value);
+        if(inp.value.trim() && n == null){ inp.value = fmt(r.v); return; }
+        if(n != null && r.o != null && r.o > 0 && Math.abs(n / r.o - 1) > 0.3 && !confirm('El precio cambia más de 30 %: de L ' + r.o + ' a L ' + n + '. ¿Está bien?')){ inp.value = fmt(r.v); return; }
+        r.v = n; inp.value = fmt(n); d.classList.toggle('chg', r.est !== 'new' && cambiado(r)); contar();
+      };
+      var x = el('button', 'x', r.est === 'del' ? '↺' : '✕'); x.type = 'button'; x.title = r.est === 'del' ? 'Deshacer' : 'Quitar este producto'; x.setAttribute('aria-label', x.title);
+      x.onclick = function(){
+        if(r.est === 'new'){ rows.splice(rows.indexOf(r), 1); } else { r.est = r.est === 'del' ? 'ok' : 'del'; }
+        pintar(); contar();
+      };
+      var ag = el('label', 'ag'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!r.a; cb.setAttribute('aria-label', 'Agotado: ' + r.n + ' ' + r.p);
+      cb.onchange = function(){ r.a = cb.checked ? 1 : 0; d.classList.toggle('chg', r.est !== 'new' && cambiado(r)); contar(); };
+      ag.appendChild(cb); ag.appendChild(el('span', null, 'Agotado'));
+      d.appendChild(inp); d.appendChild(ag); d.appendChild(x); box.appendChild(d);
+    });
+    if(!lst.length) box.appendChild(el('p', 'muted', 'No encontré productos con esa búsqueda.'));
+    $('mas').hidden = lst.length <= visibles; $('mas').textContent = 'Mostrar más (' + Math.max(0, lst.length - visibles) + ' restantes)';
+  }
+  $('mas').onclick = function(){ visibles += PAGINA; pintar(); };
+  $('q').oninput = $('fCat').onchange = function(){ visibles = PAGINA; pintar(); };
+
+  function parsePrecio(t){
+    t = String(t == null ? '' : t).replace(/[Ll]\s*\.?/g, '').replace(/\s/g, '');
+    if(!t) return null;
+    var c = t.lastIndexOf(','), p = t.lastIndexOf('.');
+    if(c >= 0 && p >= 0){ t = c > p ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, ''); }
+    else if(c >= 0){ t = /,\d{1,2}$/.test(t) ? t.replace(',', '.') : t.replace(/,/g, ''); }
+    var n = parseFloat(t); return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+  }
+
+  $('bNuevo').onclick = function(){
+    var cat = $('nCatNueva').value.trim() || $('nCat').value, nom = $('nNom').value.trim(), pres = $('nPres').value.trim(), pre = $('nPre').value.trim();
+    if(!cat || !nom || !pres){ show('msgNuevo', 'Falta el apartado, el nombre o la presentación.', true); return; }
+    var v = parsePrecio(pre); if(pre && v == null){ show('msgNuevo', 'El precio no se entiende. Escribe solo números, por ejemplo 295 o 295.50.', true); return; }
+    var r = {c: cat, n: nom, p: pres, v: v, m: $('nMar').value.trim(), o: v, est: 'new', a: 0, oa: 0};
+    if(rows.some(function(x){ return key(x) === key(r) && x.est !== 'del'; })){ show('msgNuevo', 'Ese producto con esa presentación ya existe.', true); return; }
+    if(ordenCats.indexOf(cat) < 0){ ordenCats.push(cat); llenarCats(); }
+    rows.push(r); show('msgNuevo', ''); ['nCatNueva','nNom','nPres','nPre','nMar'].forEach(function(i){ $(i).value = ''; });
+    $('q').value = nom; $('fCat').value = ''; visibles = PAGINA; pintar(); contar();
+  };
+
+  $('bAj').onclick = function(){
+    var pct = parseFloat(String($('aPct').value).replace(',', '.'));
+    if(!isFinite(pct) || pct === 0 || pct < -90 || pct > 100){ show('msgAj', 'Escribe un porcentaje válido, por ejemplo 5 o -3.', true); return; }
+    var lst = filtrados().filter(function(r){ return r.est !== 'del' && r.v != null; });
+    if(!lst.length){ show('msgAj', 'No hay productos con precio en esa selección.', true); return; }
+    if(!confirm('Se cambiarán ' + lst.length + ' precios en ' + pct + ' %. ¿Continuar?')) return;
+    lst.forEach(function(r){ var n = r.v * (1 + pct / 100); r.v = $('aRed').checked ? Math.round(n) : Math.round(n * 100) / 100; });
+    show('msgAj', 'Listo: ' + lst.length + ' precios ajustados. Revisa la tabla antes de descargar.', false); pintar(); contar();
+  };
+
+  /* ---------- CSV (Excel) ---------- */
+  function csvCampo(t){ t = String(t == null ? '' : t); return /[",;\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; }
+  $('bBaja').onclick = function(){
+    var l = ['sep=,', 'Apartado,Producto,Presentación,Precio,Marca'];
+    rows.forEach(function(r){ if(r.est !== 'del') l.push([r.c, r.n, r.p, r.v == null ? '' : r.v, r.m].map(csvCampo).join(',')); });
+    descargar('\ufeff' + l.join('\r\n'), 'precios_perdomo.csv', 'text/csv;charset=utf-8');
+  };
+  function leerCSV(txt){
+    txt = txt.replace(/^\ufeff/, '').replace(/^sep=.\r?\n/i, ''); var primera = txt.split(/\r?\n/)[0], d = (primera.split(';').length > primera.split(',').length) ? ';' : ',';
+    var out = [], f = [], c = '', q = false;
+    for(var i = 0; i < txt.length; i++){
+      var ch = txt[i];
+      if(q){ if(ch === '"'){ if(txt[i + 1] === '"'){ c += '"'; i++; } else q = false; } else c += ch; }
+      else if(ch === '"') q = true;
+      else if(ch === d){ f.push(c); c = ''; }
+      else if(ch === '\n' || ch === '\r'){ if(ch === '\r' && txt[i + 1] === '\n') i++; f.push(c); c = ''; if(f.some(function(x){ return x.trim(); })) out.push(f); f = []; }
+      else c += ch;
+    }
+    f.push(c); if(f.some(function(x){ return x.trim(); })) out.push(f);
+    return out;
+  }
+  $('csv').onchange = function(){
+    var file = this.files[0]; if(!file) return; var inp = this;
+    var rd = new FileReader();
+    rd.onload = function(){
+      var filas = leerCSV(String(rd.result));
+      if(filas.length < 2){ show('msgCsv', 'El archivo está vacío o no tiene el formato de la plantilla.', true); return; }
+      var act = 0, nue = 0, igual = 0, malos = 0, vistos = {};
+      filas.slice(1).forEach(function(f){
+        if(f.length < 4 || !f[0].trim() || !f[1].trim() || !f[2].trim()){ malos++; return; }
+        var v = parsePrecio(f[3]); if(f[3].trim() && v == null){ malos++; return; }
+        var r = {c: f[0].trim(), n: f[1].trim(), p: f[2].trim(), v: v, m: (f[4] || '').trim()}; var k = key(r); vistos[k] = 1;
+        var ex = rows.filter(function(x){ return key(x) === k; })[0];
+        if(ex){ if(ex.est === 'del') ex.est = 'ok'; if(ex.v !== v){ ex.v = v; act++; } else igual++; if(r.m && !ex.m) ex.m = r.m; }
+        else{ r.o = v; r.a = 0; r.oa = 0; r.est = 'new'; if(ordenCats.indexOf(r.c) < 0) ordenCats.push(r.c); rows.push(r); nue++; }
+      });
+      var quit = 0;
+      if($('quitar').checked) rows.forEach(function(r){ if(r.est === 'ok' && !vistos[key(r)]){ r.est = 'del'; quit++; } });
+      llenarCats(); visibles = PAGINA; pintar(); contar();
+      show('msgCsv', 'Listo: ' + act + ' precios cambiados, ' + nue + ' productos nuevos' + (quit ? ', ' + quit + ' marcados para quitar' : '') + (malos ? ', ' + malos + ' filas que no se entendieron (se ignoraron)' : '') + '. Revisa la tabla y descarga la página.', false);
+      inp.value = '';
+    };
+    rd.readAsText(file, 'utf-8');
+  };
+
+  /* ---------- Reseñas ---------- */
+  function hoyISO(){ var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  $('rFec').value = hoyISO(); $('fFec').value = hoyISO();
+  function pintarRes(){
+    var box = $('resLista'); box.textContent = '';
+    if(!resenas.length){ box.appendChild(el('p', 'muted', 'Todavía no hay reseñas publicadas.')); }
+    resenas.forEach(function(r, i){
+      var d = el('div', 'rv'), w = el('div'); w.appendChild(el('b', null, r.n));
+      w.appendChild(el('span', 'st', '★★★★★'.slice(0, r.e) + '☆☆☆☆☆'.slice(0, 5 - r.e)));
+      var f = (r.f || '').split('-'); if(f.length >= 2) w.appendChild(el('small', 'muted', '  ' + MES[+f[1] - 1] + ' de ' + f[0]));
+      w.appendChild(el('p', null, r.t));
+      var x = el('button', 'x', '✕'); x.type = 'button'; x.title = 'Quitar esta reseña'; x.setAttribute('aria-label', x.title);
+      x.onclick = function(){ resenas.splice(i, 1); pintarRes(); contar(); };
+      d.appendChild(w); d.appendChild(x); box.appendChild(d);
+    });
+  }
+  $('bRes').onclick = function(){
+    var n = $('rNom').value.trim(), t = $('rTxt').value.trim();
+    if(!n || t.length < 8){ show('msgRes', 'Escribe el nombre del cliente y su comentario.', true); return; }
+    resenas.unshift({n: n, e: +$('rEst').value, t: t, f: $('rFec').value || hoyISO()});
+    $('rNom').value = ''; $('rTxt').value = ''; show('msgRes', ''); pintarRes(); contar();
+  };
+
+  /* ---------- Fecha ---------- */
+  function textoFecha(iso){ var p = iso.split('-'); return +p[2] + ' de ' + MES[+p[1] - 1] + ' de ' + p[0]; }
+  $('fFec').onchange = function(){ if(this.value){ fechaNueva = textoFecha(this.value); $('fechaAct').textContent = fechaNueva + ' (nueva)'; contar(); } };
+  $('bHoy').onclick = function(){ $('fFec').value = hoyISO(); $('fFec').onchange(); };
+
+  /* ---------- Borrador (se guarda solo) ---------- */
+  var CLAVE = 'perdomo_panel_borrador', tb = null, pendiente = false;
+  function snapshot(){
+    var d = {nom: nombreArchivo, t: Date.now(), filas: [], nuevas: [], res: resenasCambio() ? resenas : null, fecha: fechaNueva};
+    rows.forEach(function(r){
+      if(r.est === 'new') d.nuevas.push({c: r.c, n: r.n, p: r.p, v: r.v, m: r.m, a: r.a});
+      else if(r.est === 'del' || cambiado(r)) d.filas.push({k: key(r), est: r.est, v: r.v, a: r.a});
+    });
+    return d;
+  }
+  function guardarBorrador(){
+    clearTimeout(tb);
+    tb = setTimeout(function(){
+      if(pendiente) return;
+      try{ if(sucio > 0) localStorage.setItem(CLAVE, JSON.stringify(snapshot())); else localStorage.removeItem(CLAVE); }catch(e){}
+    }, 400);
+  }
+  function borrarBorrador(){ clearTimeout(tb); try{ localStorage.removeItem(CLAVE); }catch(e){} }
+  function ofrecerBorrador(){
+    var bd = null; try{ bd = JSON.parse(localStorage.getItem(CLAVE) || 'null'); }catch(e){}
+    var n = bd ? bd.filas.length + bd.nuevas.length + (bd.res ? 1 : 0) + (bd.fecha ? 1 : 0) : 0;
+    if(!bd || bd.nom !== nombreArchivo || !n){ pendiente = false; $('borrador').hidden = true; return; }
+    pendiente = true; $('borrador').hidden = false;
+    $('bdInfo').textContent = n + (n === 1 ? ' cambio' : ' cambios') + ' guardados el ' + new Date(bd.t).toLocaleString('es-HN') + ' que no llegaste a descargar.';
+    $('bdRec').onclick = function(){
+      bd.filas.forEach(function(f){ var r = rows.filter(function(x){ return key(x) === f.k; })[0]; if(!r) return; r.v = f.v; r.a = f.a; if(f.est === 'del') r.est = 'del'; });
+      bd.nuevas.forEach(function(x){
+        if(rows.some(function(y){ return key(y) === key(x); })) return;
+        if(ordenCats.indexOf(x.c) < 0) ordenCats.push(x.c);
+        rows.push({c: x.c, n: x.n, p: x.p, v: x.v, m: x.m || '', o: x.v, est: 'new', a: x.a || 0, oa: 0});
+      });
+      if(bd.res) resenas = bd.res;
+      if(bd.fecha && fechaOrig){ fechaNueva = bd.fecha; $('fechaAct').textContent = fechaNueva + ' (nueva)'; }
+      pendiente = false; $('borrador').hidden = true; llenarCats(); pintar(); pintarRes(); contar();
+    };
+    $('bdDesc').onclick = function(){ pendiente = false; $('borrador').hidden = true; borrarBorrador(); contar(); };
+  }
+
+  /* ---------- Conteo de cambios y descarga ---------- */
+  function contar(){
+    var n = 0;
+    rows.forEach(function(r){ if(r.est === 'new' || r.est === 'del' || cambiado(r)) n++; });
+    n += Math.abs(resenasCambio()); if(fechaNueva) n++;
+    sucio = n; $('cambios').innerHTML = '<b>' + n + '</b> ' + (n === 1 ? 'cambio sin descargar' : 'cambios sin descargar');
+    $('sticky').classList.toggle('show', n > 0);
+    var vv = rows.filter(function(r){ return r.est !== 'del'; }), nn = {}; vv.forEach(function(r){ nn[norm(r.c + '|' + r.n)] = 1; }); $('sProd').textContent = Object.keys(nn).length; $('sPrec').textContent = vv.length; $('sRes').textContent = resenas.length;
+    guardarBorrador();
+  }
+  function resenasCambio(){ return JSON.stringify(resenas) === resOrig ? 0 : 1; }
+
+  function linea(r){
+    var pr = r.v == null ? 'null' : (String(r.v).indexOf('.') < 0 ? r.v + '.0' : String(r.v));
+    var p = [JSON.stringify(r.c), JSON.stringify(r.n), JSON.stringify(r.p), pr]; if(r.m || r.a) p.push(JSON.stringify(r.m || '')); if(r.a) p.push('1');
+    return '    [' + p.join(', ') + ']';
+  }
+  function armar(){
+    var salida = html, vivas = rows.filter(function(r){ return r.est !== 'del'; });
+    vivas = vivas.map(function(r, i){ return {r: r, i: i, k: ordenCats.indexOf(r.c)}; }).sort(function(a, b){ return a.k - b.k || a.i - b.i; }).map(function(x){ return x.r; });
+    var lineas = vivas.map(linea).join(',\n');
+    salida = salida.replace(RX_PROD, function(_, a, __, c){ return a + lineas + c; });
+    if(tieneRes){
+      var js = '[' + resenas.map(function(r){ return '\n  ' + JSON.stringify(r); }).join(',') + (resenas.length ? '\n' : '') + ']';
+      js = js.replace(/</g, '\\u003c');
+      salida = salida.replace(RX_RES, function(){ return '/*RESENAS_INICIO*/\nvar RESENAS = ' + js + ';\n/*RESENAS_FIN*/'; });
+    }
+    if(fechaNueva && fechaOrig) salida = salida.replace(RX_FEC, function(){ return 'Lista de precios del ' + fechaNueva + '.'; });
+    return salida;
+  }
+  function descargar(txt, nombre, tipo){
+    var b = new Blob([txt], {type: tipo || 'text/html;charset=utf-8'}), a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  $('bDescarga').onclick = function(){ if(!fechaNueva && fechaOrig && rows.some(function(r){ return r.est === 'new' || (r.est !== 'del' && r.v !== r.o); })){ fechaNueva = textoFecha(hoyISO()); $('fechaAct').textContent = fechaNueva + ' (nueva)'; } descargar(armar(), nombreArchivo); sucio = 0; borrarBorrador(); };
+  window.addEventListener('beforeunload', function(e){ if(sucio > 0){ e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+</body>
+</html>
